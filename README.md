@@ -5,34 +5,41 @@ which implements an en-**Co**-ded **B**-inary **R**-epresent-**a**-tion
 of different values.  It also uses `C` function calls to implement some
 user-facing operations, like _printing_ and _reporting run-time errors_.
 
-
 ![A cobra](https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Indian_Cobra.JPG/1920px-Indian_Cobra.JPG)
 
 ## Download 
 
-1. Use the _fork link_ from the class website to create your private clone of the starter code.
+1. Use the _link_ from the github classroom to create your private clone of the starter code.
 
-2. Do `git clone https://github.com/ucsd-cse131-fa18/00-warmup-XXX` where `XXX` is your private repo.
+2. Do `git clone https://github.com/ucsd-cse131/ucsd-cse131-sp21-02-boa-XYZ` where `XYZ` is your username.
 
 3. Link your clone to the "upstream" to get any updates
 
-```
-$ make upstream
+
+## Submission Instructions
+
+Make sure that your code works with the provided test cases by running
+the command
+
+``` sh
+make test
 ```
 
-after this you can get "updates" (in case we modify the starter code), with 
+To submit you must:
 
-```
-$ make update 
+1. [Fill this form](https://forms.gle/mW9FcrUHRrAr4uUG9) with your information (you need to do this ONCE in the quarter)
+
+2. Add the names of your group members in `COLLABORATORS.md` (leave blank if working individually),
+
+3. `commit` and `push` your code by typing 
+
+```bash
+$ make turnin 
 ```
 
-4. Save (and submit) your work with: 
+This will simply do a `git commit` followed by a `git push` to send us your code.
 
-```
-$ git commit -a -m MESSAGE
-$ git push
-```
-
+**We will use the _most recent commit_ of your code (on `main` branch) as your submission.**
 
 
 ## The Cobra Language
@@ -163,8 +170,8 @@ more below.
 The representation of values requires a definition.  We'll use the following
 representations for the Cobra runtime:
 
-- `true` will be represented as the constant `0xFFFFFFFF`
-- `false` will be represented as the constant `0x7FFFFFFF`
+- `true` will be represented as the constant  `0x80000001`
+- `false` will be represented as the constant `0x00000001`
 - numbers will be represented with a zero in the rightmost bit, as in class.
   So, for example, `2` is represented as `0x00000004`.
 
@@ -176,17 +183,20 @@ should print out as the underlying number being represented.
 
 ```c
 // c-bits/main.c
-int print(int val) {
-  printf("Unknown value: %#010x\n", val);
+long print(long val) {
+  printf("Unknown value: %#010lx\n", val);
   return val;
 }
 ```
 
-A `print` expression in `cobra` should pass the value of its  subexpression to
-the `print` function in `main.c`, and evaluate  to the same value (`print` in
-`main.c` helps out here by returning  its argument).   The main work you need
-to do here is similar to when calling an  error function; evaluate the argument, push it onto the stack  with `push`, and then `call` into `print`.
-
+A `print` expression in `cobra` should pass the 
+value of its  subexpression to the `print` function 
+in `main.c`, and evaluate to the same value 
+(`print` in `main.c` helps out here by returning 
+its argument). The main work you need to do here 
+is similar to when calling an error function; 
+evaluate the argument, save it in `rdi`, and 
+then `call` into `print`.
 
 #### Run-time Type Checking
 
@@ -201,28 +211,26 @@ You should raise errors in the following cases:
 
 - `+`, `-`, and `*` should raise an error with the substring `"arithmetic
   overflow"` if the result overflows, and falls outside the range representable
-  in 31 bits. The `jo` instruction (not to be confused with the Joe Instructor)
-  which jumps if the last instruction overflowed, is helpful here.
+  in 31 bits. The `jo` instruction which jumps if the last instruction overflowed, is helpful here.
 
 - `if` should raise an error with the substring `"expected a boolean"` if the
   conditional value is not a boolean.
 
 The code for the above will be part of your implementation of:
 
-
 ```haskell
 -- lib/Language/Cobra/Compiler.hs
 -- | TBD: Implement code for `Prim1` with appropriate type checking
 compilePrim1 :: Tag -> Env -> Prim1 -> IExp -> [Instruction]
-compilePrim1 l env op v = error "TBD:compilePrim1"
+compilePrim1 l env op v = error "fill this in"
 
 -- | TBD: Implement code for `Prim2` with appropriate type checking
 compilePrim2 :: Tag -> Env -> Prim2 -> IExp -> IExp -> [Instruction]
-compilePrim2 l env op = error "TBD:compilePrim2"
+compilePrim2 l env op = "fill this in"
 
 -- | TBD: Implement code for `If` with appropriate type checking
 compileIf :: Tag -> Env -> IExp -> AExp -> AExp -> [Instruction]
-compileIf l env v e1 e2 = error "TBD:compileIf"
+compileIf l env v e1 e2 = error "fill this in"
 ```
 
 These error messages should be printed on standard _error_, so use a
@@ -243,13 +251,13 @@ For example, you might insert code like:
 
 ```nasm
 internal_error_non_number:
-  push eax
+  mov rdi, rax
   call error_non_number
 ```
 
-Which will store the value in `eax` on the top of the stack, move `esp`
-appropriately, and perform a jump into `error_non_number` function,
-which you will write in `main.c` as a function of one argument.
+Which will store the value in `rax` in `rdi` and call the 
+`error_non_number` function, which you can write in `main.c` 
+as a function of one `long` argument.
 
 The other operators, `isNum`, `isBool`, and `print`, cannot raise
 errors, and always succeed.
@@ -260,9 +268,11 @@ errors, and always succeed.
 let x = 1 in
 let y = print(x + 1) in
 print(y + 2)
+```
 
-# will output
+which should output
 
+```
 2
 4
 4
@@ -274,9 +284,11 @@ usual, so there's an “extra” 4.
 
 ```python
 if 54: true else: false
+```
 
-# prints (on standard error) something like:
+which prints (on standard error) something like:
 
+```
 Error: expected a boolean in if, got 54
 ```
 
@@ -288,11 +300,12 @@ In order to set up the stack properly to call C functions, like `print` and
 your error functions, it's necessary to make a few changes to what we
 had in Boa.
 
+
 - **Allocating stack space ahead of time**: At the start of our generated code
   (which we now recognize is a function body participating in a C runtime
   stack), we need to make sure we make enough stack space for all variables we
-  create, and reserve that space ahead of time.  To do this, we move `esp` to
-  point to a location that is N words away (so N * 4 bytes for us), where N is
+  create, and reserve that space ahead of time.  To do this, we move `rsp` to
+  point to a location that is N words away (so N * 8 bytes for us), where N is
   the greatest number of variables we need at once.  This is actually tricky
   to compute to be fully optimal (teaser for later in the semester: by
   “tricky” I mean NP-hard), but it's easy to get an OK heuristic – we can
@@ -301,37 +314,40 @@ had in Boa.
   To do this, we need the `countVars` function, which we implemented in
   class, so I've provided it.  You need to add instructions to the provided
   spot in `funEntry` in order to make sure the correct space is allocated
-  on the stack by subtracting the right amount from `esp`.
+  on the stack by subtracting the right amount from `rsp`.
 
 - **Using the Base Pointer**: In addition, this means that all variable
-  references need to happen from `ebp` rather than from `esp`.  This is
-  because `esp` can change while we are pushing arguments onto the stack for
-  other function calls, so `ebp` is the place we should trust for consistent
+  references need to happen from `rbp` rather than from `rsp`.  This is
+  because `rsp` can change while we are pushing arguments onto the stack for
+  other function calls, so `rbp` is the place we should trust for consistent
   offsets.
 
+
 - **Participating in the C stack**: As a C function callee (from `main`) and
-  caller (of error functions and `print`), our code has some responsibilities.
+  caller (of `error` functions and `print`), our code has some responsibilities.
   First, we need to store the old base pointer upon entry, and update the
   base pointer to hold the current top of the stack (which includes the return
   pointer into main, for example).  This is why the typical top two lines of
   most C functions are:
 
   ```
-  push ebp
-  mov ebp, esp
+  push rbp
+  mov rbp, rsp
+  sub rsp, (8 * N)    # where N is the number of stack vars to allocate
   ```
 
   Similarly, when we're done with the function, we need to restore the stack
-  pointer to its old location, and put the old base pointer value back.  This
-  is why the last lines before a `ret` in a C function are often:
+  pointer to its old location, and put the old base pointer value back. This
+  is why the last lines before a `ret` are
 
   ```
-  mov esp, ebp
-  pop ebp
+  add rsp, (8 * N)    # where N is the number of allocated stack vars
+  pop rbp
+  ret
   ```
 
-- **Other Responsibilities**: If we were using registers beyond `eax`, `ebp`,
-  and `esp`, we'd be responsible for storing some of them as callee, and some
+- **Other Responsibilities**: If we were using registers beyond `rax`, `rbp`,
+  and `rsp`, we'd be responsible for storing some of them as callee, and some
   as caller.  But we're not going to go into those details for this
   assignment.  Since we aren't using those registers, it has no effect on our
   code's behavior.
@@ -345,31 +361,30 @@ for
 
 -- | TBD: insert instructions for setting up stack-frame for `n` local vars
 funEntry :: Int -> [Instruction]
-funEntry n  = error "TBD:funEntry"
+funEntry n  = error "fill this in"
 
 -- | TBD: cleaning up stack-frame after function finishes
 funExit :: [Instruction]
-funExit   = error "TBD:funExit"
+funExit n   = error "fill this in"
 ```
-
 
 ### New Assembly Constructs
 
 - `Sized`
 
-    You may run into errors that report that the _size_ of an operation is
+    You _may_ run into errors that report that the _size_ of an operation is
     ambiguous.  This could happen if you write, for example:
 
     ```
-    mov [ebp-8], 0
+    mov [rbp-8], 0
     ```
 
     Because the assembler doesn't know if the program should move a four-byte
     zero, a one-byte zero, or something in between into memory starting at
-    `[ebp-8]`.  To solve this, you can supply a size:
+    `[rbp-8]`.  To solve this, you can supply a size:
 
     ```
-    mov [ebp-8], DWORD 0
+    mov [rbp-8], DWORD 0
     ```
 
     This tells the assembler to use the “double word” size for 0, which
@@ -386,8 +401,8 @@ funExit   = error "TBD:funExit"
 - `IPush`, `IPop`
 
     These two instructions manage values on the stack.  `push` adds a value at
-    the current location of `esp`, and increments `esp` to point past the
-    added value.  `pop` decrements `esp` and moves the value at the location
+    the current location of `rsp`, and increments `rsp` to point past the
+    added value.  `pop` decrements `rsp` and moves the value at the location
     `esp` was pointing to into the provided arg.
 
 - `ICall`
@@ -398,7 +413,7 @@ funExit   = error "TBD:funExit"
         which becomes the return pointer
       - Performs an unconditional `jmp` to the provided label
 
-    `call` does not affect `ebp`, which the program must maintain on its own.
+    `call` does not affect `rbp`, which the program must maintain on its own.
 
 - `IShr`, `IShl`: Bit shifting operations
 
@@ -406,9 +421,6 @@ funExit   = error "TBD:funExit"
 
 - `IJo`, `IJno`: Jump to the provided label if the last arithmetic operation
   did/did not overflow
-
-As usual, full summaries of the instructions we use are at [this assembly
-guide](http://www.cs.virginia.edu/~evans/cs216/guides/x86.html).
 
 
 ### Testing Functions
@@ -428,7 +440,7 @@ $ valgrind output/some_test.run
 ```
 
 in order to get a little more feedback on tests that fail with `-10` as their
-exit code (which usually indicates a SEGFAULT).  This can sometimes tip you off
+exit code (which usually indicates a `SEGFAULT`).  This can sometimes tip you off
 quite well as to how memory is off, since sometimes you'll see code trying to
 jump to a constant that's in your code, or other obvious tells that there's
 something off in the stack.  Also, if you've done all your stack management
@@ -460,7 +472,7 @@ Here's _one_ order in which you could consider tackling the implementation:
 3. Fill in the `Prim1` case for everything but `print`, and figure out
    how to check for errors, and call the "non-number" error reporting
    function.  Test as you go.  Be aware that if the function call
-   SEGFAULTS, it may be because you need to refine step 2.
+   `SEGFAULT`s, it may be because you need to refine step 2.
 
 4. Implement `print` by compiling it to with a call to the `print` after
    pushing appropriate arguments.  Be aware that if the call doesn't work, it
@@ -472,38 +484,5 @@ Here's _one_ order in which you could consider tackling the implementation:
    the last step.  Test as you go.
 
 6. Complete the `If` case and test as you go.
-
-## Submission Instructions
-
-First, make sure that your code works with the provided test cases by running
-the command
-
-``` sh
-make test
-```
-
-When you're ready, run the following command to submit your homework:
-
-```sh
-make turnin
-```
-
-Before submitting your code, you have to fill
-[this form](https://goo.gl/forms/3KBuBTilmvMKFD223)
-to register your groups. **You need to fill it in for each assignment**.
-
-We will use this form to match your  github account username to
-your student id, so you **must** fill it even if you have worked
-on the assignment individually.
-
-To submit your code, just do:
-
-```bash
-$ make turnin 
-```
-
-This will simply do a `git commit` followed by a `git push` to send us your code.
-**We will use the _most recent commit_ of your code (on `master` branch) as your submission.**
-
 
 
