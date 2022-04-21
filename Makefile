@@ -30,7 +30,8 @@ endif
 endif
 endif
 
-.PHONY: clean
+.PHONY: test bin build clean distclean turnin \
+	$(ASMS) $(OBJS) $(RUNS) $(RESULTS)
 
 test: clean
 	$(TEST)
@@ -43,6 +44,7 @@ clean:
 
 distclean: clean
 	$(CLEAN)
+	rm -rf .stack-work
 
 ghci: init.txt
 	$(REPL) $(BUILD_OPTS)

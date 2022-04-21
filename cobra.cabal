@@ -55,9 +55,10 @@ test-suite test
   default-language: Haskell98
   type:             exitcode-stdio-1.0
   hs-source-dirs:   tests
+  other-modules:    Common, 
+		    Paths_cobra
   ghc-options:      -threaded
   main-is:          Test.hs
-  other-modules:    Common
   build-depends:    base,
                     directory,
                     filepath,
