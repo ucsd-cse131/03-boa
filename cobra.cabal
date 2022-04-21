@@ -56,7 +56,7 @@ test-suite test
   type:             exitcode-stdio-1.0
   hs-source-dirs:   tests
   other-modules:    Common, 
-		    Paths_cobra
+                    Paths_cobra
   ghc-options:      -threaded
   main-is:          Test.hs
   build-depends:    base,
